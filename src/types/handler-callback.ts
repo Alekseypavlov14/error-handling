@@ -1,0 +1,1 @@
+export type HandlerCallback<Error> = (error: Error) => void
