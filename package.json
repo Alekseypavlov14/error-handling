@@ -4,6 +4,7 @@
   "description": "Utility that helps to handle errors",
   "main": "./build/index.js",
   "scripts": {
+    "prepublishOnly": "npm run test && npm run build",
     "build": "tsc",
     "test": "jest"
   },
