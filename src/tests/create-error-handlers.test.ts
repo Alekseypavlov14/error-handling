@@ -1,3 +1,4 @@
+import { alwaysHandler, defaultHandler } from '../constants'
 import { executeWithErrorHandler } from '../utils/execute-with-error-handler'
 import { wrapWithErrorHandler } from '../utils/wrap-with-error-handler'
 import { createErrorHandler } from '../utils/create-error-handler'
@@ -52,4 +53,27 @@ test('Test async callbacks handling', async () => {
   await callback1()
 
   expect(counter).toBe(1)
+})
+
+test('Test special handler: defaultHandler', () => {
+  let counter = 0
+  
+  executeWithErrorHandler(callbackWithNotFoundError, handleTestError({
+    "Server error": () => {},
+    [defaultHandler]: () => counter++
+  }))
+
+  expect(counter).toBe(1)
+})
+
+test('Test special handler: alwaysHandler', () => {
+  let counter = 0
+  
+  executeWithErrorHandler(callbackWithNotFoundError, handleTestError({
+    "Server error": () => {},
+    "Not found": () => counter++,
+    [alwaysHandler]: () => counter++
+  }))
+
+  expect(counter).toBe(2)
 })
