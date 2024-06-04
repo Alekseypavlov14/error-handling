@@ -1,4 +1,5 @@
 import { executeWithErrorHandler } from '../utils/execute-with-error-handler'
+import { wrapWithErrorHandler } from '../utils/wrap-with-error-handler'
 import { createErrorHandler } from '../utils/create-error-handler'
 
 // helping code
@@ -34,4 +35,21 @@ test('Test how config categorizes error', () => {
   }))
 
   expect(counter).toBe(2)
+})
+
+test('Test async callbacks handling', async () => {
+  async function asyncCallbackWithNotFoundError() {
+    return new Promise((resolve, reject) => reject(callbackWithNotFoundError()))
+  }
+
+  let counter = 0
+
+  const callback1 = wrapWithErrorHandler(asyncCallbackWithNotFoundError, handleTestError({
+    "Not found": () => counter++,
+    "Server error": () => {}
+  }))
+
+  await callback1()
+
+  expect(counter).toBe(1)
 })
