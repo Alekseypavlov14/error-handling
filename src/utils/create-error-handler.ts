@@ -1,11 +1,12 @@
 import { HandlerCallback } from '../types/handler-callback'
-import { mapRecordToMap } from './map-record-to-map'
+import { mapConfigToMap } from './map-config-to-map'
 import { ObjectKey } from '../types/object-key'
 import { Selector } from '../types/selector'
+import { Config } from '../types/config'
 
 export function createErrorHandler<Error, Selection extends ObjectKey>(selector: Selector<Error, Selection>) {
-  return (config: Record<Selection, HandlerCallback<Error>>) => {
-    const configMap = mapRecordToMap(config)
+  return (config: Config<Selection, HandlerCallback<Error>>) => {
+    const configMap = mapConfigToMap(config)
 
     return (error: Error) => {
       const handlerCallback = configMap.get(selector(error))
