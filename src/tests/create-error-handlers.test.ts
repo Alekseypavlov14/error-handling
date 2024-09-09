@@ -83,15 +83,17 @@ test('Test special handler: alwaysHandler', () => {
   expect(counter).toBe(2)
 })
 
-test('Test merge function', () => {
+test('Test merge function with alwaysHandler and defaultHandler', () => {
   let counter = 0
 
   const configA = {
     "Not found": () => counter++,
+    [defaultHandler]: () => counter += 2,
   }
 
   const configB = {
     "Server error": () => counter++,
+    [alwaysHandler]: () => counter += 3,
   }
 
   const mergedConfig = merge(configA, configB)
@@ -99,48 +101,57 @@ test('Test merge function', () => {
 
   const testErrorNotFound = new TestError("Not found")
   const testErrorServerError = new TestError("Server error")
-
+  const testErrorUnauthorized = new TestError("Unauthorized")
+  
   errorHandler(testErrorNotFound)
   errorHandler(testErrorServerError)
+  errorHandler(testErrorUnauthorized)
 
-  expect(counter).toBe(2)
+  expect(counter).toBe(13)
 })
 
-test('Test combine function', () => {
+test('Test combine function with alwaysHandler and defaultHandler', () => {
   let counter = 0
 
   const configA = {
     "Not found": () => counter++,
+    [alwaysHandler]: () => counter += 2,
   }
 
   const configB = {
     "Not found": () => counter += 2,
+    [defaultHandler]: () => counter += 3,
   }
 
   const combinedConfig = combine(configA, configB)
   const errorHandler = handleTestError(combinedConfig)
 
   const testErrorNotFound = new TestError("Not found")
+  const testErrorServerError = new TestError("Server error")
 
   errorHandler(testErrorNotFound)
+  errorHandler(testErrorServerError)
 
-  expect(counter).toBe(3)
+  expect(counter).toBe(10)
 })
 
-test('Test merge and combine together', () => {
+test('Test merge and combine together with alwaysHandler and defaultHandler', () => {
   let counter = 0
 
   const configA = {
     "Not found": () => counter++,
     "Server error": () => counter += 2,
+    [alwaysHandler]: () => counter++,
   }
 
   const configB = {
     "Not found": () => counter += 2,
+    [defaultHandler]: () => counter += 3,
   }
 
   const configC = {
     "Unauthorized": () => counter += 3,
+    [alwaysHandler]: () => counter++,
   }
 
   const mergedConfig = merge(configA, configB)
@@ -155,5 +166,5 @@ test('Test merge and combine together', () => {
   errorHandler(testErrorServerError)
   errorHandler(testErrorUnauthorized)
 
-  expect(counter).toBe(7)
+  expect(counter).toBe(13)
 })

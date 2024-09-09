@@ -1,15 +1,16 @@
 import { HandlerCallback } from '../types/handler-callback'
+import { getObjectKeys } from './get-object-keys'
 import { ObjectKey } from '../types/object-key'
 import { Config } from '../types/config'
 import { merge } from './merge'
 
-export function combine<Selection extends ObjectKey>(...configs: Config<Selection, HandlerCallback<Error>>[]) {
+export function combine<Selection extends ObjectKey>(...configs: Config<Selection | symbol, HandlerCallback<Error>>[]) {
   const configTemplate = Object.fromEntries<HandlerCallback<Error>[]>(
-    Object.keys(merge(...configs)).map((key) => [key, []])
+    getObjectKeys(merge(...configs)).map((key) => [key, []])
   ) as Record<Selection, HandlerCallback<Error>[]>
 
   configs.forEach(config => {
-    const keys = Object.keys(config) as Selection[]
+    const keys = getObjectKeys(config) as Selection[]
     
     keys.forEach((key: Selection) => {
       const callback = config[key]
@@ -21,8 +22,8 @@ export function combine<Selection extends ObjectKey>(...configs: Config<Selectio
   })
 
   const combinedConfig = Object.fromEntries<HandlerCallback<Error>>(
-    Object.keys(configTemplate)
-      .map((key: string) => {
+    getObjectKeys(configTemplate)
+      .map((key: ObjectKey) => {
         if (!configTemplate[key as Selection]) return [key, () => {}]
         
         const combinedCallback = (error: Error) => {
@@ -33,5 +34,5 @@ export function combine<Selection extends ObjectKey>(...configs: Config<Selectio
       })
   )
 
-  return combinedConfig as Config<Selection, HandlerCallback<Error>>
+  return combinedConfig as Config<Selection | symbol, HandlerCallback<Error>>
 }
