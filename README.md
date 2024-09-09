@@ -124,6 +124,47 @@ createUserAPIRequest(userData).catch(handleHTTPErrors({
 
 This handler has to be used to isolate repeating logic in the same place.
 
+### Features: `merge` and `combine`
+
+Two functions, `merge` and `combine`, have been added to the library, allowing you to manage multiple error handler configurations efficiently.
+
+#### `merge`
+
+The `merge` function allows you to combine multiple configurations into one. This is useful when you want to reuse different error handling strategies across different parts of your application.
+
+```typescript
+import { merge } from '@oleksii-pavlov/error-handling'
+
+const mergedConfig = merge(configA, configB, configC);
+createUserAPIRequest(userData).catch(handleHTTPErrors(mergedConfig));
+```
+
+#### `combine`
+
+The `combine` function is a more advanced feature that lets you aggregate multiple handlers for the same error category. Instead of replacing previous handlers, it stacks them, so they all get executed when the error occurs.
+
+```typescript
+import { combine } from '@oleksii-pavlov/error-handling'
+
+const combinedConfig = combine(configA, configB);
+createUserAPIRequest(userData).catch(handleHTTPErrors(combinedConfig));
+```
+
+#### Using `merge` and `combine` Together
+
+These two functions can be used together, allowing for powerful error handling strategies. For instance, you can `merge` different configurations first and then `combine` the handlers for specific error codes, ensuring that all relevant actions are performed when an error occurs.
+
+```typescript
+import { merge, combine } from '@oleksii-pavlov/error-handling'
+
+const mergedConfig = merge(configA, configB);
+const combinedConfig = combine(mergedConfig, configC);
+
+createUserAPIRequest(userData).catch(handleHTTPErrors(combinedConfig));
+```
+
+By leveraging both `merge` and `combine`, you can create complex and flexible error handling mechanisms tailored to your application's needs.
+
 ### Helpers
 
 Also, this package provides two utils to **apply handler**:
