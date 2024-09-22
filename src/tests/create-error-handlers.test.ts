@@ -168,3 +168,85 @@ test('Test merge and combine together with alwaysHandler and defaultHandler', ()
 
   expect(counter).toBe(13)
 })
+
+test('Test unexpected error case', async () => {
+  let counter = 0
+  
+  const config = {
+    "Not found": () => counter++,
+    [defaultHandler]: () => counter += 2,
+    [alwaysHandler]: () => counter++,
+  }
+
+  const errorHandler = handleTestError(config)
+
+  async function request() {
+    return await new Promise<number>((res, rej) => rej(new SyntaxError("Unauthorized")))
+  }
+
+  await request().catch(errorHandler)
+
+  expect(counter).toBe(3)
+})
+
+test('Test promise rejection with error handling', async () => {
+  let counter = 0;
+
+  async function asyncCallbackWithNotFoundError() {
+    return new Promise((_, reject) => reject(new TestError("Not found")));
+  }
+
+  await asyncCallbackWithNotFoundError().catch(handleTestError({
+    "Not found": () => counter++,
+    "Server error": () => {}
+  }));
+
+  expect(counter).toBe(1);
+});
+
+test('Test promise rejection with defaultHandler in .catch()', async () => {
+  let counter = 0;
+
+  async function asyncCallbackWithUnauthorizedError() {
+    return new Promise((_, reject) => reject(new TestError("Unauthorized")));
+  }
+
+  await asyncCallbackWithUnauthorizedError().catch(handleTestError({
+    "Not found": () => {},
+    [defaultHandler]: () => counter += 2,
+  }));
+
+  expect(counter).toBe(2);
+});
+
+test('Test promise rejection with alwaysHandler in .catch()', async () => {
+  let counter = 0;
+
+  async function asyncCallbackWithServerError() {
+    return new Promise((_, reject) => reject(new TestError("Server error")));
+  }
+
+  await asyncCallbackWithServerError().catch(handleTestError({
+    "Server error": () => counter++,
+    [alwaysHandler]: () => counter += 2,
+  }));
+
+  expect(counter).toBe(3);
+});
+
+test('Test promise rejection with unexpected error in .catch()', async () => {
+  let counter = 0;
+
+  async function asyncCallbackWithUnexpectedError() {
+    return new Promise((_, reject) => reject(new TestError("Unauthorized")));
+  }
+
+  await asyncCallbackWithUnexpectedError().catch(handleTestError({
+    "Not found": () => {},
+    [defaultHandler]: () => counter += 2,
+    [alwaysHandler]: () => counter++,
+  }));
+
+  expect(counter).toBe(3); // 2 from defaultHandler, 1 from alwaysHandler
+});
+

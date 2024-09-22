@@ -8,13 +8,21 @@ export function createErrorHandler<Error, Selection extends ObjectKey>(selector:
   return (config: Config<Selection | symbol, HandlerCallback<Error>>) => {
 
     return (error: Error) => {
-      const handlerCallback = config[selector(error)]
-      const defaultHandlerCallback = config[defaultHandler] 
-      const alwaysHandlerCallback = config[alwaysHandler]
+      try {
+        const handlerCallback = config[selector(error)]
+        const defaultHandlerCallback = config[defaultHandler] 
+        const alwaysHandlerCallback = config[alwaysHandler]
+  
+        if (handlerCallback) handlerCallback(error)
+        if (!handlerCallback && defaultHandlerCallback) defaultHandlerCallback(error)
+        if (alwaysHandlerCallback) alwaysHandlerCallback(error)
+      } catch(e) {
+        const defaultHandlerCallback = config[defaultHandler] 
+        const alwaysHandlerCallback = config[alwaysHandler]
 
-      if (handlerCallback) handlerCallback(error)
-      if (!handlerCallback && defaultHandlerCallback) defaultHandlerCallback(error)
-      if (alwaysHandlerCallback) alwaysHandlerCallback(error)
+        if (defaultHandlerCallback) defaultHandlerCallback(e as Error)
+        if (alwaysHandlerCallback) alwaysHandlerCallback(e as Error)
+      }
     }
   }
 }
